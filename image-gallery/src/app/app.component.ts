@@ -31,6 +31,16 @@ export class AppComponent {
 
   newImageUrl: string = "";
 
+  productIdToUpdate: string = "";
+  nameOfProductToUpdate: string = "";
+  descriptionOfProductToUpdate: string = "";
+  priceOfProductToUpdate: string = "";
+  stockOfProductToUpdate: string = "";
+  selectedImageIds: string[] = [];
+
+  imageIdToUpdate: string = "";
+  urlOfImageToUpdate: string = "";
+
   constructor(private http: HttpClient, private database: AngularFirestore) {
     this.getAllProducts();
     this.getAllImages();
@@ -146,5 +156,57 @@ export class AppComponent {
       .catch(error => {
         console.error("Error creating image: ", error);
       });
+  }
+
+  updateProduct() {
+    this.database
+      .collection("products")
+      .doc(this.productIdToUpdate)
+      .update({
+        name: this.nameOfProductToUpdate,
+        description: this.descriptionOfProductToUpdate,
+        price: this.priceOfProductToUpdate,
+        stock: this.stockOfProductToUpdate,
+        images: this.selectedImageIds.map(imageId => {
+          return this.database.collection("images").doc(imageId).ref;
+        }) // Convert each of the string IDs provided by the selection box into DocumentReferences.
+      })
+      .catch(error => {
+        console.error("Error updating product: ", error);
+      });
+  }
+
+  updateImage() {
+    this.database
+      .collection("images")
+      .doc(this.imageIdToUpdate)
+      .update({
+        url: this.urlOfImageToUpdate
+      })
+      .catch(error => {
+        console.error("Error updating image: ", error);
+      });
+  }
+
+  onSelectProductToUpdate() {
+    let matchingProducts = this.products.filter(product => {
+      return product.id === this.productIdToUpdate;
+    }); // The matchingProducts array will contain at most 1 element as product IDs are unique.
+
+    this.nameOfProductToUpdate = matchingProducts[0].name;
+    this.descriptionOfProductToUpdate = matchingProducts[0].description;
+    this.priceOfProductToUpdate = matchingProducts[0].price;
+    this.stockOfProductToUpdate = matchingProducts[0].stock;
+    this.selectedImageIds = matchingProducts[0].images.map(image => {
+      return image.id;
+    }); // Convert each of the DocumentReferences from Firestore into string IDs the selection box can understand.
+  }
+
+  onSelectImageToUpdate() {
+    let matchingImages = this.images.filter(image => {
+      return image.id === this.imageIdToUpdate
+    }); // The matchingImages array will contain at most 1 element as image IDs are unique.
+
+    this.urlOfImageToUpdate = matchingImages[0].url;
   }
 }

@@ -22,6 +22,7 @@
 
 <select id="modeSelector" [(ngModel)]="operationMode">
   <option value="create">Create Documents</option>
+  <option value="update">Update Documents</option>
 </select>
 
 <div *ngIf="operationMode === 'create'" class="row">
@@ -63,6 +64,73 @@
       <div class="form-row">
         <label></label>
         <button (click)="createImage()">Create Image</button><br />
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="operationMode === 'update'" class="row">
+  <div class="column container">
+    <h2>Update Product</h2>
+    <form>
+      <div class="form-row">
+        <label>Select Product To Update</label>
+        <select name="productUpdateSelector" [(ngModel)]="productIdToUpdate"
+          (change)="onSelectProductToUpdate($event.target.value)">
+          <option *ngFor="let product of products" value="{{product.id}}">{{product.id}}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Name</label>
+        <input type="text" name="nameOfProductToUpdate" [(ngModel)]="nameOfProductToUpdate" required><br />
+      </div>
+      <div class="form-row">
+        <label>Description</label>
+        <input type="text" name="descriptionOfProductToUpdate" [(ngModel)]="descriptionOfProductToUpdate"
+          required><br />
+      </div>
+      <div class="form-row">
+        <label>Price</label>
+        <input type="number" name="priceOfProductToUpdate" [(ngModel)]="priceOfProductToUpdate" required><br />
+      </div>
+      <div class="form-row">
+        <label>Stock</label>
+        <input type="number" name="stockOfProductToUpdate" [(ngModel)]="stockOfProductToUpdate" min="0" step="1"
+          required><br />
+      </div>
+      <div class="form-row">
+        <label>Images (Ctrl/Cmd + Click to select multiple)</label>
+        <select multiple name="productImagesUpdateSelector" [(ngModel)]="selectedImageIds">
+          <option *ngFor="let image of images" value="{{image.id}}">{{image.id}}
+          </option>
+        </select><br />
+      </div>
+
+      <div class="form-row">
+        <label></label>
+        <button (click)="updateProduct()">Update Product</button><br />
+      </div>
+    </form>
+  </div>
+
+  <div class="column container">
+    <h2>Update Image</h2>
+    <form>
+      <div class="form-row">
+        <label>Select Image To Update</label>
+        <select name="imageSelector" [(ngModel)]="imageIdToUpdate"
+          (change)="onSelectImageToUpdate($event.target.value)">
+          <option *ngFor="let image of images" value="{{image.id}}">{{image.id}}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>URL</label>
+        <input type="text" name="urlOfImageToUpdate" [(ngModel)]="urlOfImageToUpdate" required><br />
+      </div>
+
+      <div class="form-row">
+        <label></label>
+        <button (click)="updateImage()">Update Image</button><br />
       </div>
     </form>
   </div>
