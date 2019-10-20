@@ -19,3 +19,55 @@
 <div *ngIf="thumbnail === null">
   <h2>Error!</h2>
 </div>
+
+<hr />
+<button (click)="onToggle()">Toggle Product/Image View</button>
+<div *ngIf="displayProducts === true">
+  <h1>Products:</h1>
+  <button (click)="getAllProducts()">Refresh Table</button>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Price</th>
+      <th>Stock</th>
+      <th>Description</th>
+      <th>Images</th>
+    </tr>
+    <tr *ngFor="let product of products">
+      <td>{{product.id}}</td>
+      <td>{{product.name}}</td>
+      <td>{{product.price | currency:"AUD"}}</td>
+      <td>{{product.stock}}</td>
+      <td>{{product.description}}</td>
+      <td>
+        <!-- As each resolved image's ID and URL are obtained asynchronously, use the async pipe to wait for the URL value to arrive. -->
+        <!-- To ensure we wait before accessing the ID and URL value, use the "?" operator before ".id" and ".url" -->
+        <span *ngFor="let resolvedImage of product.resolvedImages">
+          <img src="{{ (resolvedImage | async)?.url }}" height="64" width="64"> &nbsp;
+          <span class="image-tooltip">{{ (resolvedImage | async)?.id }}</span>
+        </span>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div *ngIf="displayProducts === false">
+  <h1>Images:</h1>
+  <button (click)="getAllImages()">Refresh Table</button>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>URL</th>
+      <th>Preview</th>
+    </tr>
+    <tr *ngFor="let image of images">
+      <td>{{image.id}}</td>
+      <td>{{image.url}}</td>
+      <td>
+        <img src="{{ image.url }}" height="64" width="64">
+      </td>
+    </tr>
+  </table>
+</div>
+<hr />
