@@ -20,6 +20,54 @@
   <h2>Error!</h2>
 </div>
 
+<select id="modeSelector" [(ngModel)]="operationMode">
+  <option value="create">Create Documents</option>
+</select>
+
+<div *ngIf="operationMode === 'create'" class="row">
+  <div class="column container">
+    <h2>Create Product</h2>
+    <form>
+      <div class="form-row">
+        <label>Name</label>
+        <input type="text" name="newProductName" [(ngModel)]="newProductName" required><br />
+      </div>
+      <div class="form-row">
+        <label>Description</label>
+        <input type="text" name="newProductDescription" [(ngModel)]="newProductDescription" required><br />
+      </div>
+      <div class="form-row">
+        <label>Price</label>
+        <input type="number" name="newProductPrice" [(ngModel)]="newProductPrice" required><br />
+      </div>
+      <div class="form-row">
+        <label>Stock</label>
+        <input type="number" name="newProductStock" [(ngModel)]="newProductStock" min="0" step="1" required><br />
+      </div>
+
+      <div class="form-row">
+        <label></label>
+        <button (click)="createProduct()">Create Product</button><br />
+      </div>
+    </form>
+  </div>
+
+  <div class="column container">
+    <h2>Create Image</h2>
+    <form>
+      <div class="form-row">
+        <label>URL</label>
+        <input type="text" name="newImageUrl" [(ngModel)]="newImageUrl" required><br />
+      </div>
+
+      <div class="form-row">
+        <label></label>
+        <button (click)="createImage()">Create Image</button><br />
+      </div>
+    </form>
+  </div>
+</div>
+
 <hr />
 <button (click)="onToggle()">Toggle Product/Image View</button>
 <div *ngIf="displayProducts === true">

@@ -18,9 +18,18 @@ export class AppComponent {
 
   thumbnail: string | ArrayBuffer;
 
+  operationMode: string = "create";
+
   displayProducts: boolean = true;
   products: any[];
   images: any[];
+
+  newProductName: string = "";
+  newProductDescription: string = "";
+  newProductPrice: number = null;
+  newProductStock: number = null;
+
+  newImageUrl: string = "";
 
   constructor(private http: HttpClient, private database: AngularFirestore) {
     this.getAllProducts();
@@ -113,5 +122,29 @@ export class AppComponent {
 
   onToggle() {
     this.displayProducts = !this.displayProducts;
+  }
+
+  createProduct() {
+    this.database.collection("products")
+      .add({
+        name: this.newProductName,
+        description: this.newProductDescription,
+        price: this.newProductPrice,
+        stock: this.newProductStock,
+        images: []
+      })
+      .catch(error => {
+        console.error("Error creating product: ", error);
+      });
+  }
+
+  createImage() {
+    this.database.collection("images")
+      .add({
+        url: this.newImageUrl
+      })
+      .catch(error => {
+        console.error("Error creating image: ", error);
+      });
   }
 }
