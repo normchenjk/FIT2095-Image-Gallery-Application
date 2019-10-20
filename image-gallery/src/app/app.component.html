@@ -58,8 +58,7 @@
     <h2>Create Image</h2>
     <form>
       <div class="form-row">
-        <label>URL</label>
-        <input type="text" name="newImageUrl" [(ngModel)]="newImageUrl" required><br />
+        <input type="file" name="newImageToUpload" (change)="onUploadImageForCreation($event.target.files)" required><br />
       </div>
 
       <div class="form-row">
@@ -125,8 +124,7 @@
         </select>
       </div>
       <div class="form-row">
-        <label>URL</label>
-        <input type="text" name="urlOfImageToUpdate" [(ngModel)]="urlOfImageToUpdate" required><br />
+        <input type="file" name="newImageToUpdate" (change)="onUploadImageForUpdate($event.target.files)" required><br />
       </div>
 
       <div class="form-row">

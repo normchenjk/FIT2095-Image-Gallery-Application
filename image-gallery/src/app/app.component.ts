@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AngularFirestore, DocumentChangeAction, DocumentReference, QuerySnapshot, QueryDocumentSnapshot } from '@angular/fire/firestore';
+import { AngularFireStorage } from '@angular/fire/storage';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -30,6 +31,7 @@ export class AppComponent {
   newProductStock: number = null;
 
   newImageUrl: string = "";
+  imageFileToCreate: File;
 
   productIdToUpdate: string = "";
   nameOfProductToUpdate: string = "";
@@ -39,13 +41,14 @@ export class AppComponent {
   selectedImageIds: string[] = [];
 
   imageIdToUpdate: string = "";
+  imageFileToUpdate: File;
   urlOfImageToUpdate: string = "";
 
   productIdToDelete: string = "";
 
   imageIdToDelete: string = "";
 
-  constructor(private http: HttpClient, private database: AngularFirestore) {
+  constructor(private http: HttpClient, private database: AngularFirestore, private storage: AngularFireStorage) {
     this.getAllProducts();
     this.getAllImages();
   }
@@ -152,14 +155,30 @@ export class AppComponent {
       });
   }
 
-  createImage() {
-    this.database.collection("images")
-      .add({
-        url: this.newImageUrl
-      })
-      .catch(error => {
-        console.error("Error creating image: ", error);
-      });
+  async createImage() {
+    // We need to ensure that the image ID in Firestore, and the actual image file ID in Storage are the same.
+    // We shall be storing thumbnails in a "thumbnails" folder.
+    let newImageId = this.database.createId();
+    let fileRef = this.storage.ref(`thumbnails/${newImageId}`);
+    
+    // With await, we make sure the file gets uploaded first before we proceed to obtaining its download URL.
+    await fileRef.put(this.imageFileToCreate);
+
+    // The image document in Firestore then gets created with the new URL.
+    // The set() function will update an existing document, but will create it if it does not (like upsert in MongoDB).
+    fileRef.getDownloadURL().subscribe(downloadUrl => {
+      this.database.collection("images").doc(newImageId)
+        .set({
+          url: downloadUrl,
+        })
+        .catch(error => {
+          console.error("Error creating image: ", error);
+        });
+    });
+  }
+
+  onUploadImageForCreation(files: FileList) {
+    this.imageFileToCreate = files[0];
   }
 
   updateProduct() {
@@ -180,16 +199,26 @@ export class AppComponent {
       });
   }
 
-  updateImage() {
-    this.database
-      .collection("images")
-      .doc(this.imageIdToUpdate)
-      .update({
-        url: this.urlOfImageToUpdate
-      })
-      .catch(error => {
-        console.error("Error updating image: ", error);
-      });
+  async updateImage() {
+    // An update is essentially a delete and a create done together on the same file.
+    // We need to wait (using await) to ensure we create only after the delete has finished.
+    let fileRef = this.storage.ref(`thumbnails/${this.imageIdToUpdate}`);
+    await fileRef.delete().toPromise();
+    await fileRef.put(this.imageFileToUpdate);
+
+    fileRef.getDownloadURL().subscribe(downloadUrl => {
+      this.database.collection("images").doc(this.imageIdToUpdate)
+        .set({
+          url: downloadUrl
+        })
+        .catch(error => {
+          console.error("Error updating image: ", error);
+        });
+    });
+  }
+
+  onUploadImageForUpdate(files: FileList) {
+    this.imageFileToUpdate = files[0];
   }
 
   onSelectProductToUpdate() {
@@ -238,6 +267,10 @@ export class AppComponent {
           // If we have no affected products, delete the image document right away and return.
           imageRef
             .delete()
+            .then(() => {
+              let fileRef = this.storage.ref(`thumbnails/${this.imageIdToDelete}`);
+              fileRef.delete().toPromise();
+            })
             .catch(function (error) {
               console.error("Error deleting image: ", error);
             });
@@ -260,13 +293,17 @@ export class AppComponent {
               if (numProductsToUpdate == 0) {
                 imageRef
                   .delete()
+                  .then(() => {
+                    let fileRef = this.storage.ref(`thumbnails/${this.imageIdToDelete}`);                    
+                    fileRef.delete().toPromise();
+                  })
                   .catch(function (error) {
                     console.error("Error deleting image: ", error);
                   });
               }
             })
             .catch(error => {
-              console.log("Error updating product image reference: ", error);
+              console.log("Error deleting product image reference: ", error);
             });
         });
       })

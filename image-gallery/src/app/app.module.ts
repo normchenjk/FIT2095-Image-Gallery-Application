@@ -5,6 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AngularFireModule } from '@angular/fire';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
+import { AngularFireStorageModule } from '@angular/fire/storage';
 import { environment } from '../environments/environment';
 
 @NgModule({
@@ -16,7 +17,8 @@ import { environment } from '../environments/environment';
     HttpClientModule,
     FormsModule,
     AngularFireModule.initializeApp(environment.firebase),
-    AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }) // Database stays available even when offline
+    AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }), // Database stays available even when offline
+    AngularFireStorageModule
   ],
   providers: [],
   bootstrap: [AppComponent]
