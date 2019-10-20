@@ -156,11 +156,14 @@ export class AppComponent {
   }
 
   async createImage() {
+    let imageBlob = await this.resizeImage(this.imageFileToCreate);
+    this.imageFileToCreate = imageBlob;
+
     // We need to ensure that the image ID in Firestore, and the actual image file ID in Storage are the same.
     // We shall be storing thumbnails in a "thumbnails" folder.
     let newImageId = this.database.createId();
     let fileRef = this.storage.ref(`thumbnails/${newImageId}`);
-    
+
     // With await, we make sure the file gets uploaded first before we proceed to obtaining its download URL.
     await fileRef.put(this.imageFileToCreate);
 
@@ -200,6 +203,9 @@ export class AppComponent {
   }
 
   async updateImage() {
+    let imageBlob = await this.resizeImage(this.imageFileToUpdate);
+    this.imageFileToCreate = imageBlob;
+
     // An update is essentially a delete and a create done together on the same file.
     // We need to wait (using await) to ensure we create only after the delete has finished.
     let fileRef = this.storage.ref(`thumbnails/${this.imageIdToUpdate}`);
@@ -294,7 +300,7 @@ export class AppComponent {
                 imageRef
                   .delete()
                   .then(() => {
-                    let fileRef = this.storage.ref(`thumbnails/${this.imageIdToDelete}`);                    
+                    let fileRef = this.storage.ref(`thumbnails/${this.imageIdToDelete}`);
                     fileRef.delete().toPromise();
                   })
                   .catch(function (error) {
@@ -307,5 +313,20 @@ export class AppComponent {
             });
         });
       })
+  }
+
+  async resizeImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('newWidth', "64");
+    formData.append('newHeight', "64");
+
+    const url = "<REPLACE ME WITH THE CLOUD FUNCTION ENDPOINT URL>";
+
+    // Observables can be converted to Promises and be used like a regular Promise.
+    // The resized image will be returned as a Binary Large Object (blob).
+    // The put() method we are using to upload files to Firebase Storage accepts the following upload formats:
+    // Files selected from the from input field (of type file), blobs, and images encoded as Base64 strings.
+    return await this.http.post<any>(url, formData, { responseType: 'blob' as 'json' }).toPromise();
   }
 }
