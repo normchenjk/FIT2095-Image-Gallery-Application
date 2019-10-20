@@ -41,6 +41,10 @@ export class AppComponent {
   imageIdToUpdate: string = "";
   urlOfImageToUpdate: string = "";
 
+  productIdToDelete: string = "";
+
+  imageIdToDelete: string = "";
+
   constructor(private http: HttpClient, private database: AngularFirestore) {
     this.getAllProducts();
     this.getAllImages();
@@ -208,5 +212,63 @@ export class AppComponent {
     }); // The matchingImages array will contain at most 1 element as image IDs are unique.
 
     this.urlOfImageToUpdate = matchingImages[0].url;
+  }
+
+  deleteProduct() {
+    this.database.collection("products")
+      .doc(this.productIdToDelete)
+      .delete()
+      .catch(function (error) {
+        console.error("Error deleting product: ", error);
+      });
+  }
+
+  deleteImage() {
+    let imageRef = this.database.collection("images")
+      .doc(this.imageIdToDelete)
+      .ref;
+
+    // Remove the reference to the image from the product that refers to it.
+    this.database.collection("products", ref => ref.where('images', 'array-contains', imageRef))
+      .get() // This is the second way to perform GET requests with Firestore, other than with snapshotChanges().
+      .subscribe((querySnapshot: QuerySnapshot<any>) => {
+        let numProductsToUpdate: number = querySnapshot.size;
+
+        if (numProductsToUpdate === 0) {
+          // If we have no affected products, delete the image document right away and return.
+          imageRef
+            .delete()
+            .catch(function (error) {
+              console.error("Error deleting image: ", error);
+            });
+
+          return;
+        }
+
+        // A QuerySnapshot contains QueryDocumentSnapshots from a Firestore query.
+        // QueryDocumentSnapshots are similar to DocumentSnapshots.
+        querySnapshot.forEach((matchingProduct: QueryDocumentSnapshot<any>) => {
+          matchingProduct.ref
+            .update({
+              images: matchingProduct.data().images.filter((ref: DocumentReference) => {
+                return ref.id !== imageRef.id;
+              }) // Remove a document's image reference if its ID is the same as the ID of the image being deleted.
+            })
+            .then(() => {
+              numProductsToUpdate--;
+              // After we updated all product documents, delete the image.
+              if (numProductsToUpdate == 0) {
+                imageRef
+                  .delete()
+                  .catch(function (error) {
+                    console.error("Error deleting image: ", error);
+                  });
+              }
+            })
+            .catch(error => {
+              console.log("Error updating product image reference: ", error);
+            });
+        });
+      })
   }
 }

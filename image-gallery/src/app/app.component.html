@@ -23,6 +23,7 @@
 <select id="modeSelector" [(ngModel)]="operationMode">
   <option value="create">Create Documents</option>
   <option value="update">Update Documents</option>
+  <option value="delete">Delete Documents</option>
 </select>
 
 <div *ngIf="operationMode === 'create'" class="row">
@@ -131,6 +132,44 @@
       <div class="form-row">
         <label></label>
         <button (click)="updateImage()">Update Image</button><br />
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="operationMode === 'delete'" class="row">
+  <div class="column container">
+    <h2>Delete Product</h2>
+    <form>
+      <div class="form-row">
+        <label>Select Product To Delete</label>
+        <select name="productDeleteSelector" [(ngModel)]="productIdToDelete">
+          <option *ngFor="let product of products" value="{{product.id}}">{{product.id}}</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label></label>
+        <button (click)="deleteProduct()">Delete Product</button>
+        <br />
+      </div>
+    </form>
+  </div>
+
+  <div class="column container">
+    <h2>Delete Image</h2>
+    <form>
+      <div class="form-row">
+        <label>Select Image To Delete</label>
+        <select name="imageDeleteSelector" [(ngModel)]="imageIdToDelete">
+          <option *ngFor="let image of images" value="{{image.id}}">{{image.id}}</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label></label>
+        <button (click)="deleteImage()">Delete Image</button>
+        <br />
       </div>
     </form>
   </div>
